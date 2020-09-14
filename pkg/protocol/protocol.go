@@ -5,6 +5,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Consumed by cmd/serve.go
+var ProtocolCommandMap = map[string]Protocol{
+	"simpleMajority": new(SimpleMajority),
+}
+
 type Candidate struct {
 	Name string
 }
@@ -20,15 +25,15 @@ type Election struct {
 	Candidates []Candidate
 	Votes      []Vote
 	Totals     map[string]float64 // Candidate name to their total
-	Tally      func()
 }
 
 type Protocol interface {
 	Init([]Candidate)
-	Cast(Vote)                      // Cast a vote
-	tally()                         // Closure for compute the candidate's totals, without recomputing
-	Result() ([]Candidate, float64) // Get the final result(s)
-	Display()                       // Print the current totals
+	Cast(Vote)                   // Cast a vote
+	Tally()                      // Compute the candidate's totals
+	Result() ([]string, float64) // Get the final result(s)
+	Display()                    // Print the current totals
+	GetId() string               // Get the id of the election
 }
 
 type SimpleMajority struct {
@@ -42,7 +47,6 @@ func (election *SimpleMajority) Init(candidates []Candidate) {
 	election.Name = "Simple Majority"
 	id, _ := uuid.NewRandom()
 	election.Id = id.String()
-	election.Tally = election.tally()
 	log.Info("Election initialized.")
 	election.Display()
 }
@@ -70,16 +74,13 @@ func (election *SimpleMajority) Result() ([]string, float64) {
 	return winners, max
 }
 
-func (election *SimpleMajority) tally() func() {
-	previous := 0
-	return func() {
-		for i, vote := range election.Votes[previous+1:] {
-			if _, exists := election.Totals[vote.Candidate.Name]; exists {
-				election.Totals[vote.Candidate.Name] += vote.Value
-			} else {
-				election.Totals[vote.Candidate.Name] = vote.Value
-			}
-			previous = i
+func (election *SimpleMajority) Tally() {
+	election.Totals = make(map[string]float64)
+	for _, vote := range election.Votes {
+		if _, exists := election.Totals[vote.Candidate.Name]; exists {
+			election.Totals[vote.Candidate.Name] += vote.Value
+		} else {
+			election.Totals[vote.Candidate.Name] = vote.Value
 		}
 	}
 }
@@ -91,4 +92,8 @@ func (election *SimpleMajority) Display() {
 		"candidates": election.Candidates,
 		"totals":     election.Totals,
 	}).Info()
+}
+
+func (election *SimpleMajority) GetId() string {
+	return election.Id
 }

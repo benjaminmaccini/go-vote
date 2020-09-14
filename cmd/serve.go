@@ -2,22 +2,41 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/benjaminmaccini/go-vote/pkg/protocol"
+	"github.com/benjaminmaccini/go-vote/pkg/web"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
-var protocol string
+var protocolName string
+var candidateNames []string
 
 var serveCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "Host a specific election protocol",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("serve called")
+
+		candidates := []protocol.Candidate{}
+
+		for _, name := range candidateNames {
+			candidates = append(candidates, protocol.Candidate{Name: name})
+		}
+
+		election, exists := protocol.ProtocolCommandMap[protocolName]
+		if !exists {
+			fmt.Printf("Protocol %s does not exist", protocolName)
+		}
+
+		election.Init(candidates)
+		web.Init(viper.GetString("port"), election)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(serveCmd)
 
-	serveCmd.Flags().StringVar(&protocol, "protocol", "", "The election protocol to use")
+	serveCmd.Flags().StringVar(&protocolName, "protocol", "", "The election protocol to use")
+	serveCmd.Flags().StringSliceVar(&candidateNames, "candidates", []string{}, "A list of candidates for the election")
 }

@@ -7,6 +7,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// Test that the functions in the map are properly defined
+func TestProtocolNameMap(t *testing.T) {
+	for _, election := range ProtocolCommandMap {
+		election.Init([]Candidate{Candidate{Name: "alice"}})
+		election.Display()
+	}
+}
+
 // TODO split up the test learn mocks
 func TestSimpleMajority(t *testing.T) {
 	alice := Candidate{Name: "alice"}

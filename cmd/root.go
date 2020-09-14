@@ -16,7 +16,7 @@ var rootCmd = &cobra.Command{
 	Long: `A CLI app that handles elections.
 
 Ex.
-go-vote serve --port 1337 --protocol majority
+go-vote serve --candidates alice,bob --port 1337 --protocol majority
 go-vote vote --url 127.0.0.1 --port 1337 --ballot {"tayne": 1}
 `,
 }
@@ -33,6 +33,7 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.go-vote.yaml)")
 	rootCmd.PersistentFlags().StringP("port", "", "1337", "port that the election is hosted on")
+	viper.BindPFlag("port", rootCmd.PersistentFlags().Lookup("port"))
 }
 
 // initConfig reads in config file and ENV variables if set.
