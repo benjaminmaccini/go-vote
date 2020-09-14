@@ -1,5 +1,7 @@
 # go-vote
 
+_Note that this is in pre-alpha. If you want to get involved reach out to me_
+
 A command line application for handling elections. Written in Go.
 
 Protocols are derived mainly from the contents and footnotes of [this series](https://en.wikipedia.org/wiki/Electoral_system)
@@ -18,5 +20,5 @@ make sure `alias go-vote="$GOPATH/bin/go-vote"` is also set.
 - `make test` or `go test ./...` for testing `/pkg`
 - `make watch` is useful for development (requires [entr](https://github.com/clibs/entr)).
 - `curl -X POST -H "Content-Type: application/json" -d '{"candidate": {"name": "bob"}, "value": 1}' 127.0.0.1:1234/electionId`
-- `curl -X GET 127.0.0.1:1234/6ad7c653-edb3-465b-9a76-a3cf82a4212a`
+- `curl -X GET 127.0.0.1:1234/6ad7c653-edb3-465b-9a76-a3cf82a4212a/results`
 
