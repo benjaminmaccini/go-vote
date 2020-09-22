@@ -28,7 +28,6 @@ func Init(p string, e protocol.Protocol) {
 func registerHandlers(r *mux.Router, electionId string) {
 	baseUrlPattern := fmt.Sprintf("/%s", electionId)
 	r.HandleFunc(baseUrlPattern, castVote).Methods("POST")
-	r.HandleFunc(baseUrlPattern, updateAndDisplay).Methods("GET")
 	r.HandleFunc(baseUrlPattern+"/results", getResult).Methods("GET")
 }
 
@@ -36,20 +35,20 @@ func castVote(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var vote protocol.Vote
 	if err := decoder.Decode(&vote); err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return
 	}
-	log.WithFields(log.Fields{"ballot": vote}).Info("Ballot received")
+	valid := election.ValidateVote(vote)
+	if !valid {
+		log.WithFields(log.Fields{"ballot": vote}).Error("Invalid vote received")
+		return
+	}
 	election.Cast(vote)
 }
 
-func updateAndDisplay(w http.ResponseWriter, r *http.Request) {
-	election.Tally()
-	election.Display()
-}
-
 func getResult(w http.ResponseWriter, r *http.Request) {
-	winner, total := election.Result()
-	log.WithFields(log.Fields{"winner": winner, "total": total}).Info("Election results computed and returned:")
-	msg := fmt.Sprintf("%s won with %g points", winner, total)
+	winners, total := election.Result()
+	log.WithFields(log.Fields{"winners": winners, "total": total}).Info("Election results computed and returned:")
+	msg := fmt.Sprintf("%s won with %f points", winners, total)
 	w.Write([]byte(msg))
 }

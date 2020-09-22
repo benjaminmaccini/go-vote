@@ -34,6 +34,7 @@ type Protocol interface {
 	Result() ([]string, float64) // Get the final result(s)
 	Display()                    // Print the current totals
 	GetId() string               // Get the id of the election
+	ValidateVote(Vote) bool      // Return if a cast vote is valid
 }
 
 type SimpleMajority struct {
@@ -56,7 +57,7 @@ func (election *SimpleMajority) Cast(vote Vote) {
 	log.WithFields(log.Fields{
 		"candidate": vote.Candidate,
 		"value":     vote.Value,
-	}).Info("Vote cast")
+	}).Info("Ballot cast")
 }
 
 func (election *SimpleMajority) Result() ([]string, float64) {
@@ -96,4 +97,15 @@ func (election *SimpleMajority) Display() {
 
 func (election *SimpleMajority) GetId() string {
 	return election.Id
+}
+
+func (election *SimpleMajority) ValidateVote(vote Vote) bool {
+	if vote.Value == 1 {
+		for _, candidate := range election.Candidates {
+			if vote.Candidate.Name == candidate.Name {
+				return true
+			}
+		}
+	}
+	return false
 }

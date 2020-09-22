@@ -16,8 +16,10 @@ var rootCmd = &cobra.Command{
 	Long: `A CLI app that handles elections.
 
 Ex.
-go-vote serve --candidates alice,bob --port 1337 --protocol majority
-go-vote vote --url 127.0.0.1 --port 1337 --ballot {"tayne": 1}
+go-vote serve --candidates alice,bob --port 1337 --protocol simpleMajority
+go-vote vote --electionId uuid --url 127.0.0.1 --port 1337 --ballot '{"alice": 1}'
+
+or set the values with a config file (default $HOME/.go-vote.yaml)
 `,
 }
 
