@@ -9,7 +9,8 @@ on electoral systems.
 
 # Contributing
 
-Raise an issue or a pull-request or reach out to me about something.
+Versioning: major.minor.patch
+Pull off the most recent version branch named like major.minor.patch-issueNumber
 
 ## Adding/Editing commands
 Uses [Cobra](https://github.com/spf13/cobra). After adding/editing run `go install`,
