@@ -5,30 +5,49 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/benjaminmaccini/go-vote/pkg/protocol"
-
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/benjaminmaccini/go-vote/pkg/protocol"
 )
 
-var election protocol.Protocol
+type Server struct {
+	Router     *chi.Mux
+	ElectionId string
+}
+
+func CreateNewServer(eid string) *Server {
+	s := &Server{ElectionId: eid}
+	s.Router = chi.NewRouter()
+	return s
+}
 
 // Given a port start a web server on the port
 func Init(p string, e protocol.Protocol) {
-	election = e
-	r := mux.NewRouter()
-	registerHandlers(r, election.GetId())
+	// IMPORTANT: Set the current election based on the CLI
+	protocol.E = e
+
+	s := CreateNewServer(protocol.E.GetId())
+	s.RegisterHandlers()
 
 	// Launch the server on the specified port
 	port := fmt.Sprintf(":%s", p)
-	log.WithFields(log.Fields{"electionId": election.GetId(), "port": port}).Info("Election server is live.")
-	log.Fatal(http.ListenAndServe(port, r))
+	log.WithFields(log.Fields{"electionId": protocol.E.GetId(), "port": port}).Info("Election server is live.")
+	log.Fatal(http.ListenAndServe(port, s.Router))
 }
 
-func registerHandlers(r *mux.Router, electionId string) {
-	baseUrlPattern := fmt.Sprintf("/%s", electionId)
-	r.HandleFunc(baseUrlPattern, castVote).Methods("POST")
-	r.HandleFunc(baseUrlPattern+"/results", getResult).Methods("GET")
+func (s *Server) RegisterHandlers() {
+	base := "/" + s.ElectionId
+
+	// Add middleware
+	s.Router.Use(middleware.Logger)
+	s.Router.Use(middleware.Heartbeat(base + "/healthcheck"))
+	s.Router.Use(middleware.Recoverer)
+
+	// Add routes
+	s.Router.Post(base+"/vote", castVote)
+	s.Router.Get(base+"/results", getResult)
 }
 
 func castVote(w http.ResponseWriter, r *http.Request) {
@@ -36,19 +55,24 @@ func castVote(w http.ResponseWriter, r *http.Request) {
 	var vote protocol.Vote
 	if err := decoder.Decode(&vote); err != nil {
 		log.Error(err)
+		w.WriteHeader(400)
 		return
 	}
-	valid := election.ValidateVote(vote)
+	valid := protocol.E.ValidateVote(vote)
 	if !valid {
 		log.WithFields(log.Fields{"ballot": vote}).Error("Invalid vote received")
+		w.WriteHeader(406)
 		return
 	}
-	election.Cast(vote)
+	protocol.E.Cast(vote)
+
+	w.WriteHeader(200)
 }
 
 func getResult(w http.ResponseWriter, r *http.Request) {
-	winners, total := election.Result()
+	winners, total := protocol.E.Result()
 	log.WithFields(log.Fields{"winners": winners, "total": total}).Info("Election results computed and returned:")
 	msg := fmt.Sprintf("%s won with %f points", winners, total)
+	w.WriteHeader(200)
 	w.Write([]byte(msg))
 }

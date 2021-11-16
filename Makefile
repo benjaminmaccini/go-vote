@@ -18,6 +18,13 @@ help:
 	{ lastLine = $$0 }' $(MAKEFILE_LIST) | sort -u
 	@printf "\n"
 
+## Clean the previous and install the latest binary
+install:
+	go clean
+	go mod tidy
+	go install 
+	@echo Make sure to add alias go-vote=\$$GOPATH/bin/go-vote to your \~/.bashrc
+
 ## Run tests
 test:
 	go test -failfast ./...
