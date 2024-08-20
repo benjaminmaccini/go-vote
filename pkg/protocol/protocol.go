@@ -5,18 +5,21 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// This is our global election variable
+var E Protocol
+
 // Consumed by cmd/serve.go
 var ProtocolCommandMap = map[string]Protocol{
 	"simpleMajority": new(SimpleMajority),
 }
 
 type Candidate struct {
-	Name string
+	Name string `json:"name"`
 }
 
 type Vote struct {
-	Value     float64
-	Candidate Candidate
+	Value     float64   `json:"value"`
+	Candidate Candidate `json:"candidate"`
 }
 
 type Election struct {
@@ -34,6 +37,7 @@ type Protocol interface {
 	Result() ([]string, float64) // Get the final result(s)
 	Display()                    // Print the current totals
 	GetId() string               // Get the id of the election
+	SetId(string)                // Set the id, useful for testing
 	ValidateVote(Vote) bool      // Return if a cast vote is valid
 }
 
@@ -78,11 +82,7 @@ func (election *SimpleMajority) Result() ([]string, float64) {
 func (election *SimpleMajority) Tally() {
 	election.Totals = make(map[string]float64)
 	for _, vote := range election.Votes {
-		if _, exists := election.Totals[vote.Candidate.Name]; exists {
-			election.Totals[vote.Candidate.Name] += vote.Value
-		} else {
-			election.Totals[vote.Candidate.Name] = vote.Value
-		}
+		election.Totals[vote.Candidate.Name] += vote.Value
 	}
 }
 
@@ -97,6 +97,10 @@ func (election *SimpleMajority) Display() {
 
 func (election *SimpleMajority) GetId() string {
 	return election.Id
+}
+
+func (election *SimpleMajority) SetId(id string) {
+	election.Id = id
 }
 
 func (election *SimpleMajority) ValidateVote(vote Vote) bool {
