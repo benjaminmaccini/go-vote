@@ -2,7 +2,8 @@ package protocol
 
 import (
 	"github.com/google/uuid"
-	log "github.com/sirupsen/logrus"
+
+	. "git.sr.ht/~bmaccini/go-vote/pkg/utils"
 )
 
 // This is our global election variable
@@ -46,22 +47,23 @@ type SimpleMajority struct {
 }
 
 func (election *SimpleMajority) Init(candidates []Candidate) {
+	InitLogger("INFO")
 	election.Votes = make([]Vote, 0)
 	election.Totals = make(map[string]float64)
 	election.Candidates = candidates
 	election.Name = "Simple Majority"
 	id, _ := uuid.NewRandom()
 	election.Id = id.String()
-	log.Info("Election initialized.")
+	Logger.Info("Election initialized.")
 	election.Display()
 }
 
 func (election *SimpleMajority) Cast(vote Vote) {
 	election.Votes = append(election.Votes, vote)
-	log.WithFields(log.Fields{
-		"candidate": vote.Candidate,
-		"value":     vote.Value,
-	}).Info("Ballot cast")
+	Logger.Info("Ballot cast",
+		"candidate", vote.Candidate,
+		"value", vote.Value,
+	)
 }
 
 func (election *SimpleMajority) Result() ([]string, float64) {
@@ -87,12 +89,12 @@ func (election *SimpleMajority) Tally() {
 }
 
 func (election *SimpleMajority) Display() {
-	log.WithFields(log.Fields{
-		"id":         election.Id,
-		"name":       election.Name,
-		"candidates": election.Candidates,
-		"totals":     election.Totals,
-	}).Info()
+	Logger.Info("Election display",
+		"id", election.Id,
+		"name", election.Name,
+		"candidates", election.Candidates,
+		"totals", election.Totals,
+	)
 }
 
 func (election *SimpleMajority) GetId() string {

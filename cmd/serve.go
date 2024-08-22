@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/benjaminmaccini/go-vote/pkg/protocol"
-	"github.com/benjaminmaccini/go-vote/pkg/web"
+	"git.sr.ht/~bmaccini/go-vote/pkg/protocol"
+	"git.sr.ht/~bmaccini/go-vote/pkg/web"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

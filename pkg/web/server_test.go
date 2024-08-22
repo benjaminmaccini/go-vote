@@ -8,9 +8,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
-	"github.com/benjaminmaccini/go-vote/pkg/protocol"
+	"git.sr.ht/~bmaccini/go-vote/pkg/protocol"
+	. "git.sr.ht/~bmaccini/go-vote/pkg/utils"
 )
 
 // From go-chi documentation. Executes a request
@@ -49,8 +48,8 @@ func TestAlive(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/testId/healthcheck", nil)
 	resp := executeRequest(req, s)
 
-	assert.Equal(t, http.StatusOK, resp.Code)
-	assert.Equal(t, ".", resp.Body.String())
+	AssertEqual(t, http.StatusOK, resp.Code, "")
+	AssertEqual(t, ".", resp.Body.String(), "")
 }
 
 func TestCastVote(t *testing.T) {
@@ -75,8 +74,8 @@ func TestCastVote(t *testing.T) {
 	req, _ := http.NewRequest("POST", "/testId/vote", bytes.NewBuffer(j))
 	resp := executeRequest(req, s)
 
-	assert.Equal(t, http.StatusOK, resp.Code)
-	assert.Equal(t, "", resp.Body.String())
+	AssertEqual(t, http.StatusOK, resp.Code, "")
+	AssertEqual(t, "", resp.Body.String(), "")
 }
 
 // Cast a vote for an non-existent candidate
@@ -102,7 +101,7 @@ func TestCastVoteFail(t *testing.T) {
 	req, _ := http.NewRequest("POST", "/testId/vote", bytes.NewBuffer(j))
 	resp := executeRequest(req, s)
 
-	assert.Equal(t, http.StatusNotAcceptable, resp.Code)
+	AssertEqual(t, http.StatusNotAcceptable, resp.Code, "")
 }
 
 func TestResults(t *testing.T) {
@@ -154,6 +153,6 @@ func TestResults(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/testId/results", nil)
 	resp := executeRequest(req, s)
 
-	assert.Equal(t, http.StatusOK, resp.Code)
-	assert.Equal(t, expected, resp.Body.String())
+	AssertEqual(t, http.StatusOK, resp.Code, "")
+	AssertEqual(t, expected, resp.Body.String(), "")
 }

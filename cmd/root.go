@@ -1,11 +1,11 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
-
 	homedir "github.com/mitchellh/go-homedir"
-	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	. "git.sr.ht/~bmaccini/go-vote/pkg/utils"
 )
 
 var cfgFile string
@@ -24,7 +24,7 @@ or set the values with a config file (default $HOME/.go-vote.yaml)
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		log.Fatal(err)
+		Logger.Fatal("", err)
 	}
 }
 
@@ -45,7 +45,7 @@ func initConfig() {
 		// Find home directory.
 		home, err := homedir.Dir()
 		if err != nil {
-			log.Fatal(err)
+			Logger.Fatal("", err)
 		}
 
 		// Search config in home directory with name ".go-vote" (without extension).
@@ -58,6 +58,6 @@ func initConfig() {
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		log.WithFields(log.Fields{"fileName": viper.ConfigFileUsed()}).Info("Config successfully loaded")
+		Logger.Info("Config successfully loaded", "fileName", viper.ConfigFileUsed())
 	}
 }

@@ -1,6 +1,6 @@
 package main
 
-import "github.com/benjaminmaccini/go-vote/cmd"
+import "git.sr.ht/~bmaccini/go-vote/cmd"
 
 func main() {
 	cmd.Execute()

@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"net/http"
 
+	. "git.sr.ht/~bmaccini/go-vote/pkg/utils"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-	log "github.com/sirupsen/logrus"
 
-	"github.com/benjaminmaccini/go-vote/pkg/protocol"
+	"git.sr.ht/~bmaccini/go-vote/pkg/protocol"
 )
 
 type Server struct {
@@ -31,10 +31,12 @@ func Init(p string, e protocol.Protocol) {
 	s := CreateNewServer(protocol.E.GetId())
 	s.RegisterHandlers()
 
+	InitLogger("INFO")
+
 	// Launch the server on the specified port
 	port := fmt.Sprintf(":%s", p)
-	log.WithFields(log.Fields{"electionId": protocol.E.GetId(), "port": port}).Info("Election server is live.")
-	log.Fatal(http.ListenAndServe(port, s.Router))
+	Logger.Info("Election server is live.", "electionId", protocol.E.GetId(), "port", port)
+	Logger.Fatal("", http.ListenAndServe(port, s.Router))
 }
 
 func (s *Server) RegisterHandlers() {
@@ -54,13 +56,13 @@ func castVote(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var vote protocol.Vote
 	if err := decoder.Decode(&vote); err != nil {
-		log.Error(err)
+		Logger.Error("", err)
 		w.WriteHeader(400)
 		return
 	}
 	valid := protocol.E.ValidateVote(vote)
 	if !valid {
-		log.WithFields(log.Fields{"ballot": vote}).Error("Invalid vote received")
+		Logger.Error("Invalid vote received", "ballot", vote)
 		w.WriteHeader(406)
 		return
 	}
@@ -71,7 +73,7 @@ func castVote(w http.ResponseWriter, r *http.Request) {
 
 func getResult(w http.ResponseWriter, r *http.Request) {
 	winners, total := protocol.E.Result()
-	log.WithFields(log.Fields{"winners": winners, "total": total}).Info("Election results computed and returned:")
+	Logger.Info("Election results computed and returned:", "winners", winners, "total", total)
 	msg := fmt.Sprintf("%s won with %f points", winners, total)
 	w.WriteHeader(200)
 	w.Write([]byte(msg))

@@ -1,10 +1,9 @@
 package protocol
 
 import (
-	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	. "git.sr.ht/~bmaccini/go-vote/pkg/utils"
 )
 
 // Test that the functions in the map are properly defined
@@ -54,9 +53,7 @@ func TestSimpleMajority(t *testing.T) {
 
 	election.Display()
 
-	fmt.Println(winners, count)
-
-	assert.Equal(t, 1, len(winners))
-	assert.Equal(t, bob.Name, winners[0])
-	assert.Equal(t, 3.0, count)
+	AssertEqual(t, 1, len(winners), "")
+	AssertEqual(t, bob.Name, winners[0], "")
+	AssertEqual(t, 3.0, count, "")
 }

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	log "github.com/sirupsen/logrus"
+	. "git.sr.ht/~bmaccini/go-vote/pkg/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -24,12 +24,12 @@ var voteCmd = &cobra.Command{
 
 		req, err := http.NewRequest("POST", requestUrl, bytes.NewBuffer(data))
 		if err != nil {
-			log.WithFields(log.Fields{"err": err}).Error("Bad request")
-			log.WithFields(log.Fields{
-				"ballot":     ballot,
-				"url":        requestUrl,
-				"electionId": electionId,
-			}).Fatal("Bad request")
+			Logger.Error("Bad request", "err", err)
+			Logger.Error("Bad request",
+				"ballot", ballot,
+				"url", requestUrl,
+				"electionId", electionId,
+			)
 		}
 
 		req.Header.Set("Content-Type", "application/json")
@@ -37,7 +37,7 @@ var voteCmd = &cobra.Command{
 
 		resp, err := client.Do(req)
 		if err != nil {
-			log.WithFields(log.Fields{"err": err}).Fatal("Bad request")
+			Logger.Info("Bad request", "err", err)
 		}
 		defer resp.Body.Close()
 	},
