@@ -49,9 +49,9 @@ func initConfig() {
 		}
 
 		// Search config in home directory with name ".go-vote" (without extension).
-		viper.AddConfigPath(home)
+		viper.AddConfigPath(home + "/.config/go-vote")
 		viper.SetConfigType("yaml")
-		viper.SetConfigName(".go-vote")
+		viper.SetConfigName("config")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match

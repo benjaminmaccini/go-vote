@@ -1,5 +1,7 @@
 SHELL := /bin/bash
 
+CONFIG_DIR = ${HOME}/.config/go-vote
+
 default: help
 
 ## This help screen. Requires targets to have comments with "##".
@@ -18,14 +20,16 @@ help:
 	{ lastLine = $$0 }' $(MAKEFILE_LIST) | sort -u
 	@printf "\n"
 
-## Clean the previous and install the latest binary
+## Clean the previous and install the latest binary.
 install:
-	go clean
-	go mod tidy
-	go install 
-	@echo Make sure to add alias go-vote=\$$GOPATH/bin/go-vote to your \~/.bashrc
+	@echo "Installing..."
+	@mkdir -p $(CONFIG_DIR)
+    @cp -n .go-vote-template.yaml $(CONFIG_DIR)/config.yaml || true
+	@go clean
+	@go mod tidy
+	@go install
+	@echo Make sure to add alias go-vote=\$$GOPATH/bin/go-vote to your \~/.bashrc. Replacing GOPATH with your own
 
 ## Run tests
 test:
 	go test -failfast ./...
-
