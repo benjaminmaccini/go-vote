@@ -2,14 +2,14 @@
 
 ### 08-21-2024
 
-- [ ] Reassess design
+- [x] Reassess design
 - [x] Move to sourcehut (with mirror for github)
 - [ ] Cleanup tasks after revisiting
   - [ ] Drop dependencies (where it makes sense)
-  - [ ] Change license to AGPL or similar
+  - [x] Change license to AGPL or similar
   - [ ] Update logging to be complete
   - [ ] Break out protocol into different files
-  - [ ] Add test infrastructure
+  - [x] Add test infrastructure
   - [ ] Remove in-memory global election variable and persist to SQLite
 
 ### 08-22-2024

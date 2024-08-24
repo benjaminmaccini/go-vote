@@ -1,7 +1,8 @@
 package cmd
 
 import (
-	homedir "github.com/mitchellh/go-homedir"
+	"os"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -42,8 +43,7 @@ func initConfig() {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
 	} else {
-		// Find home directory.
-		home, err := homedir.Dir()
+		home, err := os.UserHomeDir()
 		if err != nil {
 			Logger.Fatal("", err)
 		}

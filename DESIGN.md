@@ -1,9 +1,14 @@
 # Design
 
-This is a basic set of design decisions so I don't forget.
+This is a basic set of design/implementation decisions so I don't forget.
 
 - Core library of voting protocols that persist the results to a SQLite database, wrapped by either a
 CLI or web service.
+- If possible, don't import new packages. Of course, if it's an extra convienent package use it.
+- Err on the side of global utilities that other parts of the library can use
+- Configuration is file-driven in the home directory. Like `neovim` or the other 'modern' CLI programs
+- The core data model should be protocol agnostic and bashed into whatever data structure makes the most
+sense for calculating results.
 
 ```
 erDiagram
@@ -62,11 +67,3 @@ erDiagram
     ELECTION ||--o{ ELECTION_RESULT : "produces"
     CANDIDATE ||--o{ ELECTION_RESULT : "receives"
 ```
-
-# Implementation
-
-- If possible, don't import new packages. Of course, if it's an extra convienent package use it.
-- Err on the side of global utilities that other parts of the library can use
-- Configuration is file-driven in the home directory. Like `neovim`.
-- The core data model should be protocol agnostic and bashed into whatever data structure makes the most
-sense for calculating results.
