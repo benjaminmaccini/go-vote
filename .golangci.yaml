@@ -1,0 +1,21 @@
+run:
+  timeout: 1m
+  tests: true
+  modules-download-mode: readonly
+
+linters:
+  enable:
+    - gofmt
+    - gosec
+
+linters-settings:
+  gosec:
+    excludes:
+      - G404 # Insecure random number source (rand)
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - errcheck
+        - gosec

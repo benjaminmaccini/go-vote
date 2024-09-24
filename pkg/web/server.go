@@ -1,80 +1,70 @@
 package web
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
-
-	. "git.sr.ht/~bmaccini/go-vote/pkg/utils"
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
+	"time"
 
 	"git.sr.ht/~bmaccini/go-vote/pkg/protocol"
+	. "git.sr.ht/~bmaccini/go-vote/pkg/utils"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 type Server struct {
-	Router     *chi.Mux
-	ElectionId string
+	Server   *http.Server
+	Router   *chi.Mux
+	Election protocol.Protocol
 }
 
-func CreateNewServer(eid string) *Server {
-	s := &Server{ElectionId: eid}
+func CreateNewServer(election protocol.Protocol, port string) *Server {
+	s := &Server{
+		Election: election,
+	}
 	s.Router = chi.NewRouter()
+	server := http.Server{
+		Addr:              port,
+		ReadHeaderTimeout: 3 * time.Second,
+		Handler:           s.Router,
+	}
+	s.Server = &server
 	return s
 }
 
 // Given a port start a web server on the port
-func Init(p string, e protocol.Protocol) {
-	// IMPORTANT: Set the current election based on the CLI
-	protocol.E = e
-
-	s := CreateNewServer(protocol.E.GetId())
+func Init(p string, e protocol.Protocol) error {
+	s := CreateNewServer(e, fmt.Sprintf(":%s", p))
 	s.RegisterHandlers()
 
-	InitLogger("INFO")
-
 	// Launch the server on the specified port
-	port := fmt.Sprintf(":%s", p)
-	Logger.Info("Election server is live.", "electionId", protocol.E.GetId(), "port", port)
-	Logger.Fatal("", http.ListenAndServe(port, s.Router))
+	Logger.Info("Election server is live.", "electionId", e.GetID(), "port", p)
+	err := s.Server.ListenAndServe()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *Server) RegisterHandlers() {
-	base := "/" + s.ElectionId
+	base := "/" + s.Election.GetID()
 
 	// Add middleware
 	s.Router.Use(middleware.Logger)
+	s.Router.Use(middleware.RequestID)
+	s.Router.Use(middleware.RealIP)
 	s.Router.Use(middleware.Heartbeat(base + "/healthcheck"))
 	s.Router.Use(middleware.Recoverer)
 
-	// Add routes
-	s.Router.Post(base+"/vote", castVote)
-	s.Router.Get(base+"/results", getResult)
-}
+	// Voting
+	voteRouter := chi.NewRouter()
+	voteRouter.Post("/", s.CastVote)
 
-func castVote(w http.ResponseWriter, r *http.Request) {
-	decoder := json.NewDecoder(r.Body)
-	var vote protocol.Vote
-	if err := decoder.Decode(&vote); err != nil {
-		Logger.Error("", err)
-		w.WriteHeader(400)
-		return
-	}
-	valid := protocol.E.ValidateVote(vote)
-	if !valid {
-		Logger.Error("Invalid vote received", "ballot", vote)
-		w.WriteHeader(406)
-		return
-	}
-	protocol.E.Cast(vote)
+	// ElectionResults
+	electionResultsRouter := chi.NewRouter()
+	electionResultsRouter.Get("/{electionId}", s.GetElectionResults)
 
-	w.WriteHeader(200)
-}
-
-func getResult(w http.ResponseWriter, r *http.Request) {
-	winners, total := protocol.E.Result()
-	Logger.Info("Election results computed and returned:", "winners", winners, "total", total)
-	msg := fmt.Sprintf("%s won with %f points", winners, total)
-	w.WriteHeader(200)
-	w.Write([]byte(msg))
+	// Mount to the base router
+	s.Router.Mount("/vote", voteRouter)
+	s.Router.Mount("/results", electionResultsRouter)
 }

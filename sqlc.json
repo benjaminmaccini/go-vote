@@ -1,0 +1,18 @@
+{
+  "version": "2",
+  "sql": [
+    {
+      "engine": "sqlite",
+      "queries": "db/queries/",
+      "schema": "db/schema.sql",
+      "gen": {
+        "go": {
+          "package": "db",
+          "out": "pkg/db",
+          "emit_json_tags": True,
+          "emit_exact_table_names": True
+        }
+      }
+    }
+  ]
+}

@@ -15,4 +15,10 @@
 vendor/
 
 # Project specific
-.go-vote.yaml
+*.sqlite
+
+# Environments
+.env
+.env-local
+.env-dev
+.env-prod

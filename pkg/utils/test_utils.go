@@ -1,26 +1,54 @@
 package utils
 
 import (
-	"reflect"
+	"database/sql"
+	"path/filepath"
 	"testing"
+
+	_ "github.com/mattn/go-sqlite3"
+)
+
+var (
+	TestDBPath = filepath.Join(ROOT_DIR, "test.sqlite")
 )
 
 func SetupTeardown(tb testing.TB) func(tb testing.TB) {
+	InitLogger("DEBUG")
+
 	return func(tb testing.TB) {
-		InitLogger("DEBUG")
+		// Clear tables after each test
+		clearTables()
 	}
 }
 
-func AssertEqual(t *testing.T, got, want interface{}, msg string) {
-	t.Helper()
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("%s: got %v; want %v", msg, got, want)
+func clearTables() {
+	db, err := sql.Open("sqlite3", TestDBPath)
+	if err != nil {
+		panic(err)
 	}
-}
+	defer db.Close()
 
-func AssertNotEqual(t *testing.T, got, want interface{}, msg string) {
-	t.Helper()
-	if reflect.DeepEqual(got, want) {
-		t.Errorf("%s: got %v; want not %v", msg, got, want)
+	// Get all table names
+	rows, err := db.Query("SELECT name FROM sqlite_master WHERE type='table' AND name != 'schema_migrations'")
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	var tables []string
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			panic(err)
+		}
+		tables = append(tables, name)
+	}
+
+	// Clear all tables
+	for _, table := range tables {
+		_, err := db.Exec("DELETE FROM " + table)
+		if err != nil {
+			panic(err)
+		}
 	}
 }

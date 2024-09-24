@@ -1,0 +1,82 @@
+openapi: 3.1.0
+servers:
+  - url: http://localhost:1337
+info:
+  title: go-vote API
+  version: 0.1.0
+
+paths:
+  /vote:
+    post:
+      summary: Cast a vote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VoteRequest"
+      responses:
+        "200":
+          description: Vote successfully cast
+        "400":
+          description: Invalid request body
+        "406":
+          description: Invalid vote
+        "500":
+          description: Internal server error
+
+  /results/{electionId}:
+    get:
+      summary: Get election results
+      parameters:
+        - name: electionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ElectionResultsResponse"
+        "500":
+          description: Internal server error
+
+components:
+  schemas:
+    Candidate:
+      type: object
+      properties:
+        name:
+          type: string
+
+    Vote:
+      type: object
+      properties:
+        rank:
+          type: number
+          format: int
+        voter_id:
+          type: string
+        candidate_id:
+          type: string
+
+    VoteRequest:
+      type: object
+      properties:
+        electionId:
+          type: string
+        vote:
+          $ref: "#/components/schemas/Vote"
+
+    ElectionResultsResponse:
+      type: object
+      properties:
+        results:
+          type: object
+          additionalProperties:
+            type: number
+            format: float
+            description: The number of votes received by each candidate, mapped by candidate ID
