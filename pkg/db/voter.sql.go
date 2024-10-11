@@ -37,6 +37,26 @@ func (q *Queries) DeleteVoter(ctx context.Context, id string) error {
 	return err
 }
 
+const getVoterByIdIfVoted = `-- name: GetVoterByIdIfVoted :one
+SELECT voter.id, voter.zip
+FROM voter
+INNER JOIN vote ON voter.id = vote.voter_id
+WHERE voter.id = ? AND vote.election_id = ?
+LIMIT 1
+`
+
+type GetVoterByIdIfVotedParams struct {
+	ID         string `json:"id"`
+	ElectionID string `json:"election_id"`
+}
+
+func (q *Queries) GetVoterByIdIfVoted(ctx context.Context, arg GetVoterByIdIfVotedParams) (Voter, error) {
+	row := q.db.QueryRowContext(ctx, getVoterByIdIfVoted, arg.ID, arg.ElectionID)
+	var i Voter
+	err := row.Scan(&i.ID, &i.Zip)
+	return i, err
+}
+
 const listVoters = `-- name: ListVoters :many
 SELECT id, zip FROM voter
 ORDER BY id
@@ -85,6 +105,26 @@ type UpdateVoterParams struct {
 
 func (q *Queries) UpdateVoter(ctx context.Context, arg UpdateVoterParams) (Voter, error) {
 	row := q.db.QueryRowContext(ctx, updateVoter, arg.Zip, arg.ID)
+	var i Voter
+	err := row.Scan(&i.ID, &i.Zip)
+	return i, err
+}
+
+const upsertVoter = `-- name: UpsertVoter :one
+INSERT INTO voter (id, zip)
+VALUES (?, ?)
+ON CONFLICT (id) DO UPDATE SET
+    zip = excluded.zip
+RETURNING id, zip
+`
+
+type UpsertVoterParams struct {
+	ID  string         `json:"id"`
+	Zip sql.NullString `json:"zip"`
+}
+
+func (q *Queries) UpsertVoter(ctx context.Context, arg UpsertVoterParams) (Voter, error) {
+	row := q.db.QueryRowContext(ctx, upsertVoter, arg.ID, arg.Zip)
 	var i Voter
 	err := row.Scan(&i.ID, &i.Zip)
 	return i, err

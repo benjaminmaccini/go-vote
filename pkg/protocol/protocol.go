@@ -26,6 +26,7 @@ type ElectionResult struct {
 
 type Vote struct {
 	ID          string `json:"id"`
+	ElectionID  string `json:"election_id,omitempty"`
 	CandidateID string `json:"candidate_id,omitempty"`
 	VoterID     string `json:"voter_id,omitempty"`
 	Rank        int64  `json:"rank,omitempty"`
@@ -38,13 +39,15 @@ type Voter struct {
 
 var ProtocolCommandMap = map[string]Protocol{
 	"simpleMajority": new(SimpleMajority),
+	"rankedChoice":   new(RankedChoice),
 }
 
 type Protocol interface {
 	Init([]Candidate, *db.Queries) error
-	Cast(Vote) error                      // Cast a vote
+	Cast([]Vote) error                    // Cast a list of votes
 	GetID() string                        // Get the ID
 	SetID(string)                         // Set the ID
 	Results() (map[string]float64, error) // Compute the candidate's totals
-	ValidateVote(Vote) (bool, error)      // Return if a cast vote is valid
+	ValidateVote([]Vote) (bool, error)    // Return if a cast vote is valid
+	ValidateVoter(Voter) (bool, error)    // Return if a voter is eligible to vote
 }

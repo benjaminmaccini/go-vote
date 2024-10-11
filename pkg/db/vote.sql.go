@@ -12,8 +12,8 @@ import (
 )
 
 const createVote = `-- name: CreateVote :one
-INSERT INTO vote (id, candidate_id, rank, timestamp, voter_id)
-VALUES (?, ?, ?, ?, ?) RETURNING id, candidate_id, rank, timestamp, voter_id
+INSERT INTO vote (id, candidate_id, rank, timestamp, voter_id, election_id)
+VALUES (?, ?, ?, ?, ?, ?) RETURNING id, election_id, candidate_id, rank, timestamp, voter_id
 `
 
 type CreateVoteParams struct {
@@ -22,6 +22,7 @@ type CreateVoteParams struct {
 	Rank        sql.NullInt64 `json:"rank"`
 	Timestamp   time.Time     `json:"timestamp"`
 	VoterID     string        `json:"voter_id"`
+	ElectionID  string        `json:"election_id"`
 }
 
 func (q *Queries) CreateVote(ctx context.Context, arg CreateVoteParams) (Vote, error) {
@@ -31,10 +32,12 @@ func (q *Queries) CreateVote(ctx context.Context, arg CreateVoteParams) (Vote, e
 		arg.Rank,
 		arg.Timestamp,
 		arg.VoterID,
+		arg.ElectionID,
 	)
 	var i Vote
 	err := row.Scan(
 		&i.ID,
+		&i.ElectionID,
 		&i.CandidateID,
 		&i.Rank,
 		&i.Timestamp,
@@ -54,7 +57,7 @@ func (q *Queries) DeleteVote(ctx context.Context, id string) error {
 }
 
 const listVotes = `-- name: ListVotes :many
-SELECT id, candidate_id, rank, timestamp, voter_id FROM vote
+SELECT id, election_id, candidate_id, rank, timestamp, voter_id FROM vote
 ORDER BY rank ASC, timestamp DESC
 LIMIT ? OFFSET ?
 `
@@ -75,6 +78,7 @@ func (q *Queries) ListVotes(ctx context.Context, arg ListVotesParams) ([]Vote, e
 		var i Vote
 		if err := rows.Scan(
 			&i.ID,
+			&i.ElectionID,
 			&i.CandidateID,
 			&i.Rank,
 			&i.Timestamp,
@@ -95,9 +99,9 @@ func (q *Queries) ListVotes(ctx context.Context, arg ListVotesParams) ([]Vote, e
 
 const updateVote = `-- name: UpdateVote :one
 UPDATE vote
-SET candidate_id = ?, rank = ?, timestamp = ?, voter_id = ?
+SET candidate_id = ?, rank = ?, timestamp = ?, voter_id = ?, election_id = ?
 WHERE id = ?
-RETURNING id, candidate_id, rank, timestamp, voter_id
+RETURNING id, election_id, candidate_id, rank, timestamp, voter_id
 `
 
 type UpdateVoteParams struct {
@@ -105,6 +109,7 @@ type UpdateVoteParams struct {
 	Rank        sql.NullInt64 `json:"rank"`
 	Timestamp   time.Time     `json:"timestamp"`
 	VoterID     string        `json:"voter_id"`
+	ElectionID  string        `json:"election_id"`
 	ID          string        `json:"id"`
 }
 
@@ -114,11 +119,13 @@ func (q *Queries) UpdateVote(ctx context.Context, arg UpdateVoteParams) (Vote, e
 		arg.Rank,
 		arg.Timestamp,
 		arg.VoterID,
+		arg.ElectionID,
 		arg.ID,
 	)
 	var i Vote
 	err := row.Scan(
 		&i.ID,
+		&i.ElectionID,
 		&i.CandidateID,
 		&i.Rank,
 		&i.Timestamp,

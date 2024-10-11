@@ -4,28 +4,34 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"git.sr.ht/~bmaccini/go-vote/pkg/protocol"
 	. "git.sr.ht/~bmaccini/go-vote/pkg/utils"
 	"github.com/go-chi/chi"
 )
 
 func (s *Server) CastVote(w http.ResponseWriter, r *http.Request) {
-	var vote protocol.Vote
-	err := json.NewDecoder(r.Body).Decode(&vote)
+	var data VoteRequest
+	err := json.NewDecoder(r.Body).Decode(&data)
 	if err != nil {
 		Logger.Error("", err)
 		w.WriteHeader(400)
 		return
 	}
 
-	valid, err := s.Election.ValidateVote(vote)
+	valid, err := s.Election.ValidateVoter(data.Voter)
 	if !valid && err != nil {
-		Logger.Error("Invalid vote received", "ballot", vote)
-		w.WriteHeader(406)
+		Logger.Error("Voter is ineligible", "req", data)
+		w.WriteHeader(401)
 		return
 	}
 
-	err = s.Election.Cast(vote)
+	valid, err = s.Election.ValidateVote(data.Votes)
+	if !valid && err != nil {
+		Logger.Error("Invalid vote received", "req", data)
+		w.WriteHeader(401)
+		return
+	}
+
+	err = s.Election.Cast(data.Votes)
 	if err != nil {
 		Logger.Error("Error submitting the vote", "error", err)
 		w.WriteHeader(500)

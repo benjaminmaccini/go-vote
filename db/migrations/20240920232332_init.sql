@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS candidate (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     election_id TEXT,
-    FOREIGN KEY (election_id) REFERENCES election(election_id)
+    FOREIGN KEY (election_id) REFERENCES election(id)
 );
 
 CREATE TABLE IF NOT EXISTS voter (
@@ -20,11 +20,14 @@ CREATE TABLE IF NOT EXISTS voter (
 
 CREATE TABLE IF NOT EXISTS vote (
     id TEXT PRIMARY KEY,
+    election_id TEXT NOT NULL,
     candidate_id TEXT NOT NULL,
     rank INTEGER,
     timestamp DATETIME NOT NULL,
     voter_id TEXT NOT NULL,
-    FOREIGN KEY (candidate_id) REFERENCES candidate(candidate_id)
+    FOREIGN KEY (election_id) REFERENCES election(id),
+    FOREIGN KEY (candidate_id) REFERENCES candidate(id),
+    FOREIGN KEY (voter_id) REFERENCES voter(id)
 );
 
 CREATE TABLE IF NOT EXISTS election_result (
@@ -34,8 +37,8 @@ CREATE TABLE IF NOT EXISTS election_result (
     total_votes INTEGER,
     vote_percentage REAL,
     rank INTEGER,
-    FOREIGN KEY (election_id) REFERENCES election(election_id),
-    FOREIGN KEY (candidate_id) REFERENCES candidate(candidate_id)
+    FOREIGN KEY (election_id) REFERENCES election(id),
+    FOREIGN KEY (candidate_id) REFERENCES candidate(id)
 );
 
 -- migrate:down

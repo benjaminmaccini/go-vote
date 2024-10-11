@@ -35,6 +35,7 @@ type SchemaMigrations struct {
 
 type Vote struct {
 	ID          string        `json:"id"`
+	ElectionID  string        `json:"election_id"`
 	CandidateID string        `json:"candidate_id"`
 	Rank        sql.NullInt64 `json:"rank"`
 	Timestamp   time.Time     `json:"timestamp"`

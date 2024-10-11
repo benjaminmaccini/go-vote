@@ -5,8 +5,8 @@ import (
 )
 
 type VoteRequest struct {
-	ElectionId string        `json:"election_id"`
-	Vote       protocol.Vote `json:"vote"`
+	Voter protocol.Voter  `json:"voter"`
+	Votes []protocol.Vote `json:"votes"`
 }
 
 type VoteResponse struct{}

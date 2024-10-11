@@ -52,6 +52,14 @@ components:
         name:
           type: string
 
+    Voter:
+      type: object
+      properties:
+        id:
+          type: string
+        zip:
+          type: string
+
     Vote:
       type: object
       properties:
@@ -62,14 +70,18 @@ components:
           type: string
         candidate_id:
           type: string
+        election_id:
+          type: string
 
     VoteRequest:
       type: object
       properties:
-        electionId:
-          type: string
-        vote:
-          $ref: "#/components/schemas/Vote"
+        voter:
+          $ref: "#/components/schemas/Voter"
+        votes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Vote"
 
     ElectionResultsResponse:
       type: object

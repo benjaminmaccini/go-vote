@@ -17,3 +17,17 @@ func GetStringUUIDv7() string {
 	}
 	return id.String()
 }
+
+// Helper function to check if all elements in a slice are equal
+func AllEqual[T comparable](slice []T) bool {
+	if len(slice) == 0 {
+		return true
+	}
+	first := slice[0]
+	for _, item := range slice[1:] {
+		if item != first {
+			return false
+		}
+	}
+	return true
+}

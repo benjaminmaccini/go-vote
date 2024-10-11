@@ -1,10 +1,10 @@
 -- name: CreateVote :one
-INSERT INTO vote (id, candidate_id, rank, timestamp, voter_id)
-VALUES (?, ?, ?, ?, ?) RETURNING *;
+INSERT INTO vote (id, candidate_id, rank, timestamp, voter_id, election_id)
+VALUES (?, ?, ?, ?, ?, ?) RETURNING *;
 
 -- name: UpdateVote :one
 UPDATE vote
-SET candidate_id = ?, rank = ?, timestamp = ?, voter_id = ?
+SET candidate_id = ?, rank = ?, timestamp = ?, voter_id = ?, election_id = ?
 WHERE id = ?
 RETURNING *;
 

@@ -15,10 +15,12 @@ var (
 func SetupTeardown(tb testing.TB) func(tb testing.TB) {
 	InitLogger("DEBUG")
 
-	return func(tb testing.TB) {
-		// Clear tables after each test
-		clearTables()
-	}
+	// Clear tables before each test
+	// This is useful for debugging by investigating the state of the database
+	clearTables()
+
+	// Cleanup function
+	return func(tb testing.TB) {}
 }
 
 func clearTables() {

@@ -7,7 +7,7 @@ CREATE TABLE candidate (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     election_id TEXT,
-    FOREIGN KEY (election_id) REFERENCES election(election_id)
+    FOREIGN KEY (election_id) REFERENCES election(id)
 );
 CREATE TABLE voter (
     id TEXT PRIMARY KEY,
@@ -15,11 +15,14 @@ CREATE TABLE voter (
 );
 CREATE TABLE vote (
     id TEXT PRIMARY KEY,
+    election_id TEXT NOT NULL,
     candidate_id TEXT NOT NULL,
     rank INTEGER,
     timestamp DATETIME NOT NULL,
     voter_id TEXT NOT NULL,
-    FOREIGN KEY (candidate_id) REFERENCES candidate(candidate_id)
+    FOREIGN KEY (election_id) REFERENCES election(id),
+    FOREIGN KEY (candidate_id) REFERENCES candidate(id),
+    FOREIGN KEY (voter_id) REFERENCES voter(id)
 );
 CREATE TABLE election_result (
     id TEXT PRIMARY KEY,
@@ -28,8 +31,8 @@ CREATE TABLE election_result (
     total_votes INTEGER,
     vote_percentage REAL,
     rank INTEGER,
-    FOREIGN KEY (election_id) REFERENCES election(election_id),
-    FOREIGN KEY (candidate_id) REFERENCES candidate(candidate_id)
+    FOREIGN KEY (election_id) REFERENCES election(id),
+    FOREIGN KEY (candidate_id) REFERENCES candidate(id)
 );
 -- Dbmate schema migrations
 INSERT INTO "schema_migrations" (version) VALUES

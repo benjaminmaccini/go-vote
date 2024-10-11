@@ -44,13 +44,15 @@ func (sm *SimpleMajority) Init(candidates []Candidate, queries *db.Queries) erro
 	return nil
 }
 
-func (sm *SimpleMajority) Cast(vote Vote) error {
+func (sm *SimpleMajority) Cast(votes []Vote) error {
+	vote := votes[0]
 	_, err := sm.Queries.CreateVote(context.Background(), db.CreateVoteParams{
 		ID:          vote.ID,
 		CandidateID: vote.CandidateID,
 		Rank:        sql.NullInt64{Int64: 1, Valid: true},
 		Timestamp:   time.Now(),
 		VoterID:     vote.VoterID,
+		ElectionID:  sm.Election.ID,
 	})
 	if err != nil {
 		return err
@@ -94,10 +96,35 @@ func (sm *SimpleMajority) SetID(id string) {
 	sm.Election.ID = id
 }
 
-func (sm *SimpleMajority) ValidateVote(vote Vote) (bool, error) {
-	_, err := sm.Queries.GetCandidate(context.Background(), vote.CandidateID)
-	if err != nil {
-		return true, nil
+func (sm *SimpleMajority) ValidateVote(votes []Vote) (bool, error) {
+	if len(votes) != 1 {
+		return false, fmt.Errorf("Simple Majority elections only accept single votes")
 	}
-	return false, nil
+
+	vote := votes[0]
+
+	// Right Election
+	if vote.ElectionID != sm.Election.ID {
+		return false, fmt.Errorf("Vote election does not correspond to the current election")
+	}
+
+	// One person one vote
+	_, err := sm.Queries.GetVoterByIdIfVoted(context.Background(), db.GetVoterByIdIfVotedParams{ID: vote.VoterID, ElectionID: vote.ElectionID})
+	if err == nil {
+		return false, fmt.Errorf("voter has already cast a vote")
+	}
+	if err != sql.ErrNoRows {
+		return false, err
+	}
+
+	// Candidate must exist
+	_, err = sm.Queries.GetCandidate(context.Background(), vote.CandidateID)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (sm *SimpleMajority) ValidateVoter(voter Voter) (bool, error) {
+	return ValidateVoterExists(sm.Queries, voter)
 }

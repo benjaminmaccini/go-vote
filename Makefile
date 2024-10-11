@@ -24,10 +24,12 @@ help:
 ## Run migrations on the database
 db/migrate:
 	dbmate --url "sqlite:${DATABASE_URL}" up
+	dbmate --url "sqlite:test.sqlite" up
 
 ## Rollback the previous migration
 db/rollback:
 	dbmate --url "sqlite:${DATABASE_URL}" down
+	dbmate --url "sqlite:test.sqlite" down
 
 ## Generate the structs and queries using sqlc. Results can be found in pkg/db
 db/generate:
